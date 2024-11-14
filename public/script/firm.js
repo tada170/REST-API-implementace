@@ -30,13 +30,18 @@ function createTable(data) {
     tbody.innerHTML = '';
 
     if (data.length) {
+        // Získání klíčů
         const headers = Object.keys(data[0]);
 
         // Vytvoření záhlaví tabulky
         const headerRow = document.createElement('tr');
         headers.forEach(header => {
             const th = document.createElement('th');
-            th.textContent = header;
+            if (header === 'subject_id') {
+                th.textContent = 'Subject Name';
+            } else {
+                th.textContent = header;
+            }
             headerRow.appendChild(th);
         });
         thead.appendChild(headerRow);
@@ -46,13 +51,33 @@ function createTable(data) {
             const row = document.createElement('tr');
             headers.forEach(header => {
                 const cell = document.createElement('td');
-                cell.textContent = item[header] !== null ? item[header] : 'N/A';
+                if (header === 'subject_id') {
+                    cell.textContent = item['subject_name'] !== null ? item['subject_name'] : 'N/A'; // Zobrazíme subject_name
+                } else {
+                    cell.textContent = item[header] !== null ? item[header] : 'N/A';
+                }
                 row.appendChild(cell);
             });
             tbody.appendChild(row);
         });
+
+        // Remove the last column in the header
+        const lastHeaderCell = thead.querySelector('tr th:last-child');
+        if (lastHeaderCell) {
+            lastHeaderCell.remove();
+        }
+
+        // Remove the last column in each row
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const lastCell = row.querySelector('td:last-child');
+            if (lastCell) {
+                lastCell.remove();
+            }
+        });
     }
 }
+
 
 // Přidání událostí pro tlačítka
 document.getElementById('showAllFirms').addEventListener('click', fetchAllFirms);
