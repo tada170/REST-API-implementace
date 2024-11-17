@@ -18,18 +18,22 @@ function defineAPIEndpoints(app, connection) {
             const [results] = await connection.query(`
                 SELECT firm.*, subject.name AS subject_name
                 FROM firm
-                LEFT JOIN subject ON firm.subject_id = subject.id
+                         LEFT JOIN subject ON firm.subject_id = subject.id
                 WHERE firm.id = ?
             `, [firmId]);
+
+            console.log(results);
+
             res.json(results[0] || {});
         } catch (error) {
+            console.error('Error fetching firm:', error);
             res.status(500).json({ msg: error.message });
         }
     });
-    // API pro získání všech sloupců tabulky 'firms'
-    app.get('/api/firms/:id/vcard', async (req, res) => {
+
+    app.get('/api/firm/:id/vcard', async (req, res) => {
         const firmId = req.params.id;
-        const fields = req.query.fields ? req.query.fields.split(',') : []; // Extract fields from the query parameter
+        const fields = req.query.fields ? req.query.fields.split(',') : [];
 
         try {
             const [results] = await connection.query('SELECT * FROM firm_contacts WHERE firm_id = ?', [firmId]);
@@ -38,7 +42,7 @@ function defineAPIEndpoints(app, connection) {
                 return res.status(404).json({ msg: 'Firma nenalezena' });
             }
 
-            const firm = results[0]; // Assuming the query returns an array with a single object
+            const firm = results[0];
 
             const vcardData = {};
 
@@ -60,40 +64,29 @@ function defineAPIEndpoints(app, connection) {
             res.status(500).json({ msg: 'Chyba při načítání firemních dat' });
         }
     });
-    app.post('/api/firm', (req, res) => {
-        const firmData = req.body; // Přijatá data formuláře
-        const fields = Object.keys(firmData);
-        const values = Object.values(firmData);
 
-        // Dynamicky vytvoříme SQL dotaz pro vložení dat
-        const query = `INSERT INTO firm (${fields.join(', ')})
-                       VALUES (${fields.map(() => '?').join(', ')})`;
-
-        connection.query(query, values, (err, result) => {
-            if (err) {
-                console.error('Chyba při vkládání firmy:', err);
-                res.status(500).json({msg: 'Chyba při vkládání firmy'});
-            } else {
-                res.status(200).json({msg: 'Firma byla úspěšně přidána!'});
-            }
-        });
+    app.get('/api/firm/fields', async (req, res) => {
+        try {
+            const [results] = await connection.query('DESCRIBE firm');
+            console.log('Výstup z DESCRIBE firm:', results);  // Tento výstup by měl být v console logu
+            const fields = results.map(field => ({
+                Field: field.Field,
+                Type: field.Type,
+                Null: field.Null,
+                Key: field.Key,
+                Default: field.Default,
+                Extra: field.Extra
+            }));
+            res.json({ fields });  // Posíláme tyto informace zpátky na frontend
+        } catch (error) {
+            console.error('Chyba při získávání popisu tabulky:', error);
+            res.status(500).json({ msg: 'Chyba při získávání popisu tabulky.' });
+        }
     });
-        // API pro získání všech sloupců tabulky 'firms' a jejich dynamické vytvoření formuláře
-        app.get('/api/firm/fields', async (req, res) => {
-            try {
-                // Použití async/await pro získání popisu tabulky 'firms'
-                const [result] = await connection.query('DESCRIBE firms');
-                const fields = result.map(field => field.Field); // Seznam sloupců
-                res.json({fields});
-            } catch (error) {
-                console.error('Chyba při získávání popisu tabulky:', error);
-                res.status(500).json({msg: 'Chyba při získávání popisu tabulky.'});
-            }
-        });
 
-// API pro uložení nové firmy (post request)
+
     app.post('/api/firm', async (req, res) => {
-        console.log('Přijatá data:', req.body); // Zkontroluj přijatá data
+        console.log('Přijatá data:', req.body);
 
         const firmData = req.body;
         const fields = Object.keys(firmData);
@@ -101,7 +94,7 @@ function defineAPIEndpoints(app, connection) {
 
         try {
             const query = `
-                INSERT INTO firms (${fields.join(', ')})
+                INSERT INTO firm (${fields.join(', ')})
                 VALUES (${fields.map(() => '?').join(', ')})
             `;
             const [result] = await connection.query(query, values);
@@ -112,8 +105,20 @@ function defineAPIEndpoints(app, connection) {
             res.status(500).json({ msg: 'Chyba při vkládání firmy' });
         }
     });
-
-
+    app.delete('/api/firm/:id', async (req, res) => {
+        const { id } = req.params;
+        try {
+            const [result] = await connection.query('DELETE FROM firm WHERE id = ?', [id]);
+            if (result.affectedRows > 0) {
+                res.status(200).json({ msg: 'Firma byla úspěšně smazána.' });
+            } else {
+                res.status(404).json({ msg: 'Firma nebyla nalezena.' });
+            }
+        } catch (error) {
+            console.error('Chyba při mazání firmy:', error);
+            res.status(500).json({ msg: 'Chyba při mazání firmy.' });
+        }
+    });
 
 }
 module.exports = defineAPIEndpoints;

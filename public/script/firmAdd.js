@@ -2,6 +2,7 @@ async function fetchFormFields() {
     try {
         const response = await fetch('/api/firm/fields');
         const data = await response.json();
+        console.log('Data z API (polí formuláře):', data);  // Vypíše data, která přijdou z API
         createForm(data); // Vytvoření formuláře na základě polí
     } catch (error) {
         console.error('Chyba při načítání polí formuláře:', error);
@@ -12,8 +13,11 @@ function createForm(fields) {
     const form = document.getElementById('form');
     form.innerHTML = ''; // Vymažeme případný existující obsah formuláře
 
+    console.log('Vytvářím formulář pro tato pole:', fields); // Vypíše data, podle kterých bude formulář tvořen
+
     // Iterujeme přes všechny pole a vytváříme pro ně textová pole
     Object.keys(fields).forEach((field, index) => {
+        console.log('Zpracovávám pole:', field);  // Vypíše, jaké pole právě zpracováváme
         // Smažeme první a poslední sloupec
         if (index === 0 || index === Object.keys(fields).length - 1) return;
 
@@ -55,6 +59,8 @@ function createForm(fields) {
             }
         });
 
+        console.log('Odesílám následující data:', dataToSend);  // Vypíše data, která budou odeslána
+
         try {
             const response = await fetch('/api/firm', {
                 method: 'POST',
@@ -65,7 +71,7 @@ function createForm(fields) {
             });
 
             const result = await response.json();
-            console.log(result.msg); // Zobrazíme odpověď z backendu
+            console.log('Odpověď z backendu:', result);  // Vypíše odpověď, kterou dostaneme zpět od serveru
             if (response.ok) {
                 alert('Firma byla úspěšně přidána!');
             } else {
