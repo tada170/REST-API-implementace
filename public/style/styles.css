@@ -1,3 +1,4 @@
+/* Styly pro tabulku */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -19,6 +20,7 @@ td {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
 /* Styly pro formulář */
 body {
     font-family: Arial, sans-serif;
@@ -32,7 +34,7 @@ h2 {
     color: #333;
 }
 
-#form {
+#formContainer {
     width: 100%;
     max-width: 600px;
     margin: 0 auto;

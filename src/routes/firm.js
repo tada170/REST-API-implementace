@@ -1,4 +1,4 @@
-function defineAPIEndpoints(app, connection) {
+function defineAPIFirmEndpoints(app, connection) {
     app.get('/api/firm', async (req, res) => {
         try {
             const [results] = await connection.query(`
@@ -30,41 +30,6 @@ function defineAPIEndpoints(app, connection) {
             res.status(500).json({ msg: error.message });
         }
     });
-
-    app.get('/api/firm/:id/vcard', async (req, res) => {
-        const firmId = req.params.id;
-        const fields = req.query.fields ? req.query.fields.split(',') : [];
-
-        try {
-            const [results] = await connection.query('SELECT * FROM firm_contacts WHERE firm_id = ?', [firmId]);
-
-            if (results.length === 0) {
-                return res.status(404).json({ msg: 'Firma nenalezena' });
-            }
-
-            const firm = results[0];
-
-            const vcardData = {};
-
-            if (fields.length > 0) {
-                fields.forEach(field => {
-                    if (firm.hasOwnProperty(field)) {
-                        vcardData[field] = firm[field];
-                    }
-                });
-            } else {
-                Object.assign(vcardData, firm);
-            }
-
-            const vcardResponse = formatVCard(firm, vcardData);
-
-            res.json(vcardResponse);
-        } catch (error) {
-            console.error('Error fetching firm:', error);
-            res.status(500).json({ msg: 'Chyba při načítání firemních dat' });
-        }
-    });
-
     app.get('/api/firm/fields', async (req, res) => {
         try {
             const [results] = await connection.query('DESCRIBE firm');
@@ -121,4 +86,4 @@ function defineAPIEndpoints(app, connection) {
     });
 
 }
-module.exports = defineAPIEndpoints;
+module.exports = defineAPIFirmEndpoints;

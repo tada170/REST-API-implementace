@@ -2,7 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const createConnection = require('./db_conn');
-const defineAPIEndpoints = require('./routes/firm');
+const defineAPIFirmEndpoints = require('./routes/firm');
+const defineAPIContactEndpoints = require('./routes/contact');
 const defineAPIHtmlEndpoints = require('./pages');
 const path = require('path');
 
@@ -19,7 +20,8 @@ async function startServer() {
     try {
         const connection = await createConnection();
         defineAPIHtmlEndpoints(app);
-        defineAPIEndpoints(app, connection);
+        defineAPIFirmEndpoints(app, connection);
+        defineAPIContactEndpoints(app, connection);
 
         app.listen(port, () => {
             console.log(`Server is running on http://localhost:${port}`);
