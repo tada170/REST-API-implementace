@@ -84,6 +84,32 @@ function defineAPIFirmEndpoints(app, connection) {
             res.status(500).json({ msg: 'Chyba při mazání firmy.' });
         }
     });
+    // Endpoint pro aktualizaci firemních dat podle ID
+    app.put('/api/firm/:id', async (req, res) => {
+        const { id } = req.params;
+        const { name, address, contact } = req.body; // Předpokládáme, že tělo požadavku obsahuje nová data
+
+        try {
+            if (!name) {
+                return res.status(400).json({ message: 'Název firmy je povinný' });
+            }
+
+            const result = await db.query(
+                'UPDATE firms SET name = ?, address = ?, contact = ? WHERE id = ?',
+                [name, address, contact, id]
+            );
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: 'Firma nenalezena' });
+            }
+
+            res.json({ message: 'Firma byla úspěšně aktualizována' });
+        } catch (error) {
+            console.error('Chyba při aktualizaci firmy:', error);
+            res.status(500).json({ message: 'Chyba při aktualizaci firmy' });
+        }
+    });
+
 
 }
 module.exports = defineAPIFirmEndpoints;
