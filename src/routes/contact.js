@@ -1,8 +1,8 @@
-function defineAPIContactEndpoints(app,connection) {
+function defineAPIContactEndpoints(app, connection) {
+    // GET: Získání všech kontaktů pro konkrétní firmu
     app.get('/api/firms/:id/contact', async (req, res) => {
         const firmId = req.params.id;
-        const fields = req.query.fields ? req.query.fields.split(',') : [];
-        const sortBy = req.query.fields || 'id';
+        const sortBy = req.query.sortBy || 'id';
         const sortOrder = req.query.sortOrder || 'DESC';
 
         try {
@@ -14,62 +14,120 @@ function defineAPIContactEndpoints(app,connection) {
             `, [firmId]);
 
             if (results.length === 0) {
-                return res.status(404).json({msg: 'Firma nenalezena'});
+                return res.status(404).json({ msg: 'Firma nemá žádné kontakty.' });
             }
 
-            const vcardData = results.map(item => {
-                return item;
-            });
-
-            res.json(vcardData);
+            res.json(results);
         } catch (error) {
-            console.error('Error fetching firm:', error);
-            res.status(500).json({msg: 'Chyba při načítání firemních dat'});
+            console.error('Chyba při načítání kontaktů:', error);
+            res.status(500).json({ msg: 'Chyba při načítání kontaktů.' });
         }
     });
+
+    // GET: Získání seznamu polí tabulky
     app.get('/api/contact/fields', async (req, res) => {
         try {
-            // Získáme seznam sloupců tabulky
             const [columns] = await connection.query(`
-            SHOW COLUMNS FROM firm_contacts
-        `);
+                SHOW COLUMNS FROM firm_contacts
+            `);
 
-            // Převedeme výsledky na seznam objektů s názvem a typem sloupce
             const fields = columns.map(col => ({
                 name: col.Field,
-                type: col.Type.includes('int') ? 'number' : 'text'  // Přizpůsobíme typ podle toho, zda je to číslo
+                type: col.Type.includes('int') ? 'number' : 'text'
             }));
 
-            // Odpověď obsahuje pole objektů (název, typ)
             res.json({ fields });
         } catch (error) {
             console.error('Chyba při načítání polí:', error);
-            res.status(500).json({ msg: 'Chyba při načítání polí' });
+            res.status(500).json({ msg: 'Chyba při načítání polí.' });
         }
     });
+
+    // POST: Přidání nového kontaktu
     app.post('/api/contact/add', async (req, res) => {
         try {
             const contact = req.body;
+            delete contact.id; // Odstraníme auto-increment sloupec
 
-            // Před odstraněním ID sloupce (pokud existuje) můžeme také upravit další logiku, pokud je to potřeba.
-            delete contact.id; // Ujistíme se, že 'firm_id' není součástí odesílaných dat
-
-            // Seznam sloupců bez ID
             const fields = Object.keys(contact).join(', ');
             const values = Object.values(contact).map(value => `"${value}"`).join(', ');
 
-            // Přidání kontaktu do databáze, bez 'firm_id' pole
             const query = `INSERT INTO firm_contacts (${fields}) VALUES (${values})`;
-
             await connection.query(query);
 
             res.status(200).json({ msg: 'Kontakt úspěšně přidán.' });
         } catch (error) {
             console.error('Chyba při přidávání kontaktu:', error);
-            res.status(500).json({ msg: 'Chyba při přidávání kontaktu' });
+            res.status(500).json({ msg: 'Chyba při přidávání kontaktu.' });
         }
     });
 
+    // PUT: Aktualizace konkrétního kontaktu
+    app.put('/api/firms/:firm_id/contacts/:contact_id', async (req, res) => {
+        const { firm_id, contact_id } = req.params;
+        const updatedData = req.body;
 
+        try {
+            const [result] = await connection.query(`
+                UPDATE firm_contacts
+                SET ?
+                WHERE firm_id = ? AND id = ?
+            `, [updatedData, firm_id, contact_id]);
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ msg: 'Kontakt nenalezen.' });
+            }
+
+            res.json({ msg: 'Kontakt byl úspěšně aktualizován.' });
+        } catch (error) {
+            console.error('Chyba při aktualizaci kontaktu:', error);
+            res.status(500).json({ msg: 'Chyba při aktualizaci kontaktu.' });
+        }
+    });
+
+    // PATCH: Aktualizace specifických polí kontaktu
+    app.patch('/api/firms/:firm_id/contacts/:contact_id', async (req, res) => {
+        const { firm_id, contact_id } = req.params;
+        const updatedData = req.body;
+
+        try {
+            const [result] = await connection.query(`
+                UPDATE firm_contacts
+                SET ?
+                WHERE firm_id = ? AND id = ?
+            `, [updatedData, firm_id, contact_id]);
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ msg: 'Kontakt nenalezen.' });
+            }
+
+            res.json({ msg: 'Kontakt byl úspěšně aktualizován.' });
+        } catch (error) {
+            console.error('Chyba při aktualizaci kontaktu:', error);
+            res.status(500).json({ msg: 'Chyba při aktualizaci kontaktu.' });
+        }
+    });
+
+    // DELETE: Smazání konkrétního kontaktu
+    app.delete('/api/firms/:firm_id/contacts/:contact_id', async (req, res) => {
+        const { firm_id, contact_id } = req.params;
+
+        try {
+            const [result] = await connection.query(`
+                DELETE FROM firm_contacts
+                WHERE firm_id = ? AND id = ?
+            `, [firm_id, contact_id]);
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ msg: 'Kontakt nenalezen.' });
+            }
+
+            res.json({ msg: 'Kontakt byl úspěšně smazán.' });
+        } catch (error) {
+            console.error('Chyba při mazání kontaktu:', error);
+            res.status(500).json({ msg: 'Chyba při mazání kontaktu.' });
+        }
+    });
 }
+
 module.exports = defineAPIContactEndpoints;

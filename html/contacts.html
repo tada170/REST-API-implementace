@@ -3,31 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firma - VCard Data</title>
+    <title>Správa kontaktů</title>
     <link rel="stylesheet" href="/style/styles.css">
 </head>
 <body>
 
-<h2>Firma VCard Data</h2>
+<h1>Správa kontaktů</h1>
 
-<!-- Formulář pro zadání ID firmy -->
-<div id="form">
-    <div class="form-group">
-        <label for="firmId">Zadejte ID firmy:</label>
-        <input type="text" id="firmId" placeholder="Např. 1">
-    </div>
-    <div class="form-group">
-        <label for="fields">Zadejte požadované pole (oddělené čárkami):</label>
-        <input type="text" id="fields" placeholder="Např. name,email,phone">
-    </div>
-    <button id="fetchVCard" class="submit-btn">Načíst VCard</button>
+<div>
+    <label for="firmId">ID firmy:</label>
+    <input type="text" id="firmId">
+    <label for="fields">Pole (oddělená čárkou):</label>
+    <input type="text" id="fields">
+    <button id="fetchVCard">Načíst kontakty</button>
 </div>
 
-<!-- Tabulka pro zobrazení dat -->
 <table id="vCardTable">
     <thead></thead>
     <tbody></tbody>
 </table>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span id="closeModal" class="close">&times;</span>
+        <h2>Upravit kontakt</h2>
+        <form id="editForm"></form>
+        <button id="saveChanges">Uložit změny</button>
+    </div>
+</div>
 
 <script src="/script/firmConstact.js"></script>
 </body>

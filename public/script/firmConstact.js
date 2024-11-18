@@ -1,5 +1,10 @@
 document.getElementById('fetchVCard').addEventListener('click', fetchVCardData);
 
+const editModal = document.getElementById('editModal');
+const closeModal = document.getElementById('closeModal');
+const saveChanges = document.getElementById('saveChanges');
+const editForm = document.getElementById('editForm');
+
 async function fetchVCardData() {
     const firmId = document.getElementById('firmId').value;
     const fields = document.getElementById('fields').value;
@@ -18,10 +23,8 @@ async function fetchVCardData() {
         const response = await fetch(url);
         const data = await response.json();
 
-        console.log('Odpověď z API:', data); // Zde vypíšeme odpověď z API do konzole
-
         if (response.ok) {
-            displayVCardData(data);
+            displayVCardData(data, firmId);
         } else {
             alert(data.msg || 'Chyba při načítání dat');
         }
@@ -31,7 +34,7 @@ async function fetchVCardData() {
     }
 }
 
-function displayVCardData(data) {
+function displayVCardData(data, firmId) {
     const table = document.getElementById('vCardTable');
     const thead = table.querySelector('thead');
     const tbody = table.querySelector('tbody');
@@ -40,7 +43,6 @@ function displayVCardData(data) {
     tbody.innerHTML = '';
 
     if (data.length > 0) {
-        // Získáme názvy všech klíčů z prvního objektu pro hlavičku tabulky
         const headers = Object.keys(data[0]);
         const headerRow = document.createElement('tr');
         headers.forEach(header => {
@@ -48,9 +50,13 @@ function displayVCardData(data) {
             th.textContent = header;
             headerRow.appendChild(th);
         });
+
+        const actionHeader = document.createElement('th');
+        actionHeader.textContent = 'Akce';
+        headerRow.appendChild(actionHeader);
+
         thead.appendChild(headerRow);
 
-        // Pro každý objekt v poli `data` vytvoříme nový řádek
         data.forEach(item => {
             const row = document.createElement('tr');
             headers.forEach(header => {
@@ -58,15 +64,113 @@ function displayVCardData(data) {
                 td.textContent = item[header] !== null ? item[header] : 'N/A';
                 row.appendChild(td);
             });
+
+            const actionTd = document.createElement('td');
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Smazat';
+            deleteButton.addEventListener('click', () => deleteContact(item.id, firmId));
+            actionTd.appendChild(deleteButton);
+
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Editovat';
+            editButton.addEventListener('click', () => openEditModal(item, firmId));
+            actionTd.appendChild(editButton);
+
+            row.appendChild(actionTd);
             tbody.appendChild(row);
         });
     } else {
-        // Pokud není žádná data, přidáme informaci
         const row = document.createElement('tr');
         const td = document.createElement('td');
-        td.colSpan = 100; // Určíme, že řádek bude mít 100 sloupců, což je víc než počet ve sloupcích
+        td.colSpan = 100;
         td.textContent = 'Žádná data k zobrazení';
         row.appendChild(td);
         tbody.appendChild(row);
+    }
+}
+
+function openEditModal(item, firmId) {
+    editForm.innerHTML = '';
+
+    Object.keys(item).forEach(key => {
+        if (key === 'id' || key === 'firm_id') return;
+
+        const div = document.createElement('div');
+        const label = document.createElement('label');
+        label.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+
+        const input = document.createElement('input');
+        input.name = key;
+        input.value = item[key] !== null ? item[key] : '';
+
+        div.appendChild(label);
+        div.appendChild(input);
+        editForm.appendChild(div);
+    });
+
+    saveChanges.onclick = () => saveContactChanges(item.id, firmId);
+    editModal.style.display = 'block';
+}
+
+async function saveContactChanges(contactId, firmId) {
+    const formData = new FormData(editForm);
+    const updatedData = {};
+    formData.forEach((value, key) => {
+        updatedData[key] = value;
+    });
+
+    try {
+        const response = await fetch(`/api/firms/${firmId}/contacts/${contactId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
+        });
+
+        if (response.ok) {
+            alert('Kontakt byl úspěšně upraven.');
+            editModal.style.display = 'none';
+            fetchVCardData();
+        } else {
+            const result = await response.json();
+            alert('Chyba: ' + result.msg);
+        }
+    } catch (error) {
+        console.error('Chyba při ukládání změn:', error);
+        alert('Došlo k chybě při ukládání změn.');
+    }
+}
+
+closeModal.addEventListener('click', () => {
+    editModal.style.display = 'none';
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target === editModal) {
+        editModal.style.display = 'none';
+    }
+});
+async function deleteContact(contactId, firmId) {
+    if (!confirm('Opravdu chcete tento kontakt smazat?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/firms/${firmId}/contacts/${contactId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            alert('Kontakt byl úspěšně smazán.');
+            fetchVCardData(); // Aktualizujeme tabulku
+        } else {
+            const result = await response.json();
+            alert('Chyba: ' + result.msg);
+        }
+    } catch (error) {
+        console.error('Chyba při mazání kontaktu:', error);
+        alert('Došlo k chybě při mazání kontaktu.');
     }
 }
