@@ -2,15 +2,18 @@ function defineAPIContactEndpoints(app, connection) {
     // GET: Získání všech kontaktů pro konkrétní firmu
     app.get('/api/firms/:id/contact', async (req, res) => {
         const firmId = req.params.id;
-        const sortBy = req.query.sortBy || 'id';
-        const sortOrder = req.query.sortOrder || 'DESC';
+        const allowedSortBy = ['id', 'name', 'email', 'phone']; // Povolené sloupce
+        const allowedSortOrder = ['ASC', 'DESC'];
+
+        const sortBy = allowedSortBy.includes(req.query.fields) ? req.query.fields : 'id';
+        const sortOrder = allowedSortOrder.includes(req.query.sortOrder) ? req.query.sortOrder : 'DESC';
 
         try {
             const [results] = await connection.query(`
                 SELECT *
                 FROM firm_contacts
                 WHERE firm_id = ?
-                ORDER BY ${sortBy} ${sortOrder}
+                ORDER BY ${connection.escapeId(sortBy)} ${sortOrder}
             `, [firmId]);
 
             if (results.length === 0) {
@@ -23,6 +26,7 @@ function defineAPIContactEndpoints(app, connection) {
             res.status(500).json({ msg: 'Chyba při načítání kontaktů.' });
         }
     });
+
 
     // GET: Získání seznamu polí tabulky
     app.get('/api/contact/fields', async (req, res) => {
@@ -48,7 +52,7 @@ function defineAPIContactEndpoints(app, connection) {
     app.post('/api/contact/add', async (req, res) => {
         try {
             const contact = req.body;
-            delete contact.id; // Odstraníme auto-increment sloupec
+            delete contact.id;
 
             const fields = Object.keys(contact).join(', ');
             const values = Object.values(contact).map(value => `"${value}"`).join(', ');
@@ -63,7 +67,7 @@ function defineAPIContactEndpoints(app, connection) {
         }
     });
 
-    // PUT: Aktualizace konkrétního kontaktu
+
     app.put('/api/firms/:firm_id/contacts/:contact_id', async (req, res) => {
         const { firm_id, contact_id } = req.params;
         const updatedData = req.body;
@@ -71,31 +75,7 @@ function defineAPIContactEndpoints(app, connection) {
         try {
             const [result] = await connection.query(`
                 UPDATE firm_contacts
-                SET ?
-                WHERE firm_id = ? AND id = ?
-            `, [updatedData, firm_id, contact_id]);
-
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ msg: 'Kontakt nenalezen.' });
-            }
-
-            res.json({ msg: 'Kontakt byl úspěšně aktualizován.' });
-        } catch (error) {
-            console.error('Chyba při aktualizaci kontaktu:', error);
-            res.status(500).json({ msg: 'Chyba při aktualizaci kontaktu.' });
-        }
-    });
-
-    // PATCH: Aktualizace specifických polí kontaktu
-    app.patch('/api/firms/:firm_id/contacts/:contact_id', async (req, res) => {
-        const { firm_id, contact_id } = req.params;
-        const updatedData = req.body;
-
-        try {
-            const [result] = await connection.query(`
-                UPDATE firm_contacts
-                SET ?
-                WHERE firm_id = ? AND id = ?
+                SET ? WHERE firm_id = ? AND id = ?
             `, [updatedData, firm_id, contact_id]);
 
             if (result.affectedRows === 0) {
