@@ -7,3 +7,6 @@ document.getElementById('goToContFirm').addEventListener('click', () => {
 document.getElementById('goToHome').addEventListener('click', () => {
     window.location.href = '/';  // Přesměrování na hlavní stránku
 });
+document.getElementById('goToContAdd').addEventListener('click', () => {
+    window.location.href = '/contact_add';  // Přesměrování na hlavní stránku
+});

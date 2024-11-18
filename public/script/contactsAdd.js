@@ -6,16 +6,16 @@ async function fetchFields() {
             throw new Error('Nepodařilo se načíst pole formuláře.');
         }
 
-        const fields = await response.json();
-        console.log('Políčka formuláře:', fields);
+        const fieldsData = await response.json();
+        console.log('Políčka formuláře:', fieldsData);
 
-        if (!Array.isArray(fields.fields)) {
+        if (!Array.isArray(fieldsData.fields)) {
             throw new Error('Odpověď není pole.');
         }
 
         const form = document.getElementById('contactForm');
 
-        fields.fields.forEach(field => {
+        fieldsData.fields.forEach(field => {
             if (field.name === 'id') return;
 
             const div = document.createElement('div');
@@ -24,16 +24,14 @@ async function fetchFields() {
             const label = document.createElement('label');
             label.textContent = field.name.charAt(0).toUpperCase() + field.name.slice(1);
 
-            let inputElement;
+            const inputElement = document.createElement('input');
+            inputElement.type = field.type;
+            inputElement.name = field.name;
 
-            if (field.type === 'number') {
-                inputElement = document.createElement('input');
-                inputElement.type = 'number';
-                inputElement.name = field.name;
-            } else {
-                inputElement = document.createElement('input');
-                inputElement.type = 'text';
-                inputElement.name = field.name;
+            // Přidáme atribut `required` pouze pro pole, která nemohou být NULL
+            if (!field.nullable) {
+                console.log(field.name + " canot be null");
+                inputElement.required = true;
             }
 
             div.appendChild(label);
@@ -54,7 +52,7 @@ async function fetchFields() {
                 data[key] = value;
             });
 
-            // Ujistíme se, že 'firm_id' není odesíláno
+            // Ujistíme se, že `id` není odesíláno
             delete data.id;
 
             try {

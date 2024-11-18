@@ -33,7 +33,8 @@ function defineAPIContactEndpoints(app, connection) {
 
             const fields = columns.map(col => ({
                 name: col.Field,
-                type: col.Type.includes('int') ? 'number' : 'text'
+                type: col.Type.includes('int') ? 'number' : 'text',
+                nullable: col.Null === 'YES'
             }));
 
             res.json({ fields });
