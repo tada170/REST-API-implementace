@@ -8,7 +8,7 @@ const defineAPIHtmlEndpoints = require('./pages');
 const path = require('path');
 
 const app = express();
-const port = 3000;
+const port = process.env.SERVER_PORT;
 const projectPath = path.join(__dirname, "..");
 
 app.use(express.static(path.join(projectPath, "public")));

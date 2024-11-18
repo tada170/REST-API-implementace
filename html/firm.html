@@ -8,29 +8,34 @@
 </head>
 <body>
 
+<!-- Horní lišta pro ovládání -->
 <div class="top-bar">
     <button id="showAllFirms">Zobrazit všechny firmy</button>
-    <label for="firmId"></label>
-    <input type="text" id="firmId" placeholder="Zadejte ID firmy">
-    <button id="showFirmById">Zobrazit firmu podle ID</button>
-</div>
-
-<h2>Tabulka z JSON dat</h2>
-<div class="delete-firm">
-    <input type="text" id="firmIdToDelete" placeholder="Zadejte ID firmy k odstranění">
-    <button id="deleteFirmById">Smazat firmu</button>
-</div>
-<div class="add-firm">
+    <button id="goToContFirm">Přejít na stránku pro vybrání kontaktu firmy</button>
     <button id="goToAddPage">Přejít na stránku pro přidání firmy</button>
 </div>
-<div class="cont-firm">
-    <button id="goToContFirm">Přejít na stránku pro vybrani kontaku firmy</button>
+
+<!-- Sekce pro ovládání firem podle ID -->
+<div class="controls">
+    <label for="firmId">Zadejte ID firmy:</label>
+    <input type="text" id="firmId" placeholder="Zadejte ID firmy">
+    <button id="showFirmById">Zobrazit firmu podle ID</button>
+    <button id="deleteFirmById">Smazat firmu</button>
+    <button id="editFirmById">Editovat firmu</button>
 </div>
+
+<!-- Tabulka pro zobrazení firem -->
 <table id="dataTable">
-    <thead></thead>
-    <tbody></tbody>
+    <thead>
+    <!-- Hlavičky tabulky budou dynamicky načteny -->
+    </thead>
+    <tbody>
+    <!-- Data tabulky budou dynamicky načtena -->
+    </tbody>
 </table>
 
 <script src="/script/firm.js"></script>
+<script src="/script/nav.js"></script>
+
 </body>
 </html>

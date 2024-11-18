@@ -56,22 +56,28 @@ function createTable(data) {
 
     if (data.length) {
         const headers = Object.keys(data[0]);
-        console.log("Sloupce (hlavičky) tabulky:", headers);
 
         const headerRow = document.createElement('tr');
-        headers.forEach(header => {
+        headers.slice(0, -1).forEach(header => { // Vynechání posledního sloupce
             const th = document.createElement('th');
-            th.textContent = header === 'subject_id' ? 'Subject Name' : header;
+            if (header === 'subject_id') {
+                th.textContent = 'Subject Name'; // Nahrazení názvu sloupce
+            } else {
+                th.textContent = header;
+            }
             headerRow.appendChild(th);
         });
         thead.appendChild(headerRow);
 
         data.forEach((item, index) => {
-            console.log(`Přidávám řádek pro firmu číslo ${index + 1}:`, item);
             const row = document.createElement('tr');
-            headers.forEach(header => {
+            headers.slice(0, -1).forEach(header => { // Vynechání dat pro poslední sloupec
                 const cell = document.createElement('td');
-                cell.textContent = item[header] !== null ? item[header] : 'N/A';
+                if (header === 'subject_id') {
+                    cell.textContent = item['subject_name'] !== null ? item['subject_name'] : 'N/A'; // Nahrazení dat
+                } else {
+                    cell.textContent = item[header] !== null ? item[header] : 'N/A';
+                }
                 row.appendChild(cell);
             });
             tbody.appendChild(row);
@@ -80,6 +86,7 @@ function createTable(data) {
         console.log("Data nejsou k dispozici nebo jsou prázdná.");
     }
 }
+
 
 document.getElementById('showAllFirms').addEventListener('click', fetchAllFirms);
 document.getElementById('showFirmById').addEventListener('click', () => {
@@ -92,7 +99,7 @@ document.getElementById('showFirmById').addEventListener('click', () => {
 });
 
 document.getElementById('deleteFirmById').addEventListener('click', () => {
-    const firmIdToDelete = document.getElementById('firmIdToDelete').value;
+    const firmIdToDelete = document.getElementById('firmId').value;
     if (firmIdToDelete) {
         deleteFirmById(firmIdToDelete);
     } else {
@@ -100,11 +107,5 @@ document.getElementById('deleteFirmById').addEventListener('click', () => {
     }
 });
 
-document.getElementById('goToAddPage').addEventListener('click', () => {
-    window.location.href = '/add';  // Přesměrování na stránku pro přidání firmy
-});
-document.getElementById('goToContFirm').addEventListener('click', () => {
-    window.location.href = '/contact';  // Přesměrování na stránku pro přidání firmy
-});
 
 fetchAllFirms();

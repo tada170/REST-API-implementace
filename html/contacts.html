@@ -7,21 +7,27 @@
     <link rel="stylesheet" href="/style/styles.css">
 </head>
 <body>
-
-<h1>Správa kontaktů</h1>
-
-<div>
-    <label for="firmId">ID firmy:</label>
-    <input type="text" id="firmId">
-    <label for="fields">Pole (oddělená čárkou):</label>
-    <input type="text" id="fields">
-    <button id="fetchVCard">Načíst kontakty</button>
+<div class="top-bar">
+    <button id="goToContFirm">Přejít na stránku pro vybrání kontaktu firmy</button>
+    <button id="goToAddPage">Přejít na stránku pro přidání firmy</button>
+    <button id="goToHome">Přejít na stránku pro zobrazeni firem</button>
 </div>
+<div class="container">
+    <h1>Správa kontaktů</h1>
 
-<table id="vCardTable">
-    <thead></thead>
-    <tbody></tbody>
-</table>
+    <div class="controls">
+        <label for="firmId">ID firmy:</label>
+        <input type="text" id="firmId">
+        <label for="fields">Pole:</label>
+        <input type="text" id="fields" placeholder="napr.: name">
+        <button id="fetchVCard">Načíst kontakty</button>
+    </div>
+
+    <table id="vCardTable">
+        <thead></thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 <div id="editModal" class="modal">
     <div class="modal-content">
@@ -33,5 +39,7 @@
 </div>
 
 <script src="/script/firmConstact.js"></script>
+<script src="/script/nav.js"></script>
+
 </body>
 </html>
