@@ -33,7 +33,8 @@ function defineAPIFirmEndpoints(app, connection) {
     app.get('/api/firm/fields', async (req, res) => {
         try {
             const [results] = await connection.query('DESCRIBE firm');
-            console.log('Výstup z DESCRIBE firm:', results);  // Tento výstup by měl být v console logu
+            console.log('Výstup z DESCRIBE firm:', results);
+
             const fields = results.map(field => ({
                 Field: field.Field,
                 Type: field.Type,
@@ -42,12 +43,14 @@ function defineAPIFirmEndpoints(app, connection) {
                 Default: field.Default,
                 Extra: field.Extra
             }));
-            res.json({ fields });  // Posíláme tyto informace zpátky na frontend
+
+            res.json({ fields });
         } catch (error) {
             console.error('Chyba při získávání popisu tabulky:', error);
             res.status(500).json({ msg: 'Chyba při získávání popisu tabulky.' });
         }
     });
+
 
 
     app.post('/api/firm', async (req, res) => {
